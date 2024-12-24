@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Prayers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #D2B48C;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+        }
+        .day-selector {
+            margin-bottom: 20px;
+        }
+        .day-selector select {
+            padding: 10px;
+            font-size: 16px;
+        }
+        .prayer-content {
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .prayer-part {
+            margin-bottom: 20px;
+        }
+        .prayer-part h3 {
+            margin: 0 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Daily Prayers</h1>
+    </header>
+    <main>
+        <div class="day-selector">
+            <label for="day">Select the day:</label>
+            <select id="day" onchange="updatePrayer()">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+            </select>
+        </div>
+        <div class="prayer-content" id="prayerContent">
+            <p>Select a day to view the prayer.</p>
+        </div>
+    </main>
+    <script>
+const prayers = {
+    Monday: "JOYFUL",
+    Tuesday: "SORROWFUL",
+    Wednesday: "GLORIOUS",
+    Thursday: "JOYFUL",
+    Friday: "SORROWFUL",
+    Saturday: "GLORIOUS",
+    Sunday: function getSeasonal() {
+        const date = new Date();
+        const month = date.getMonth();
+        const season = month === 11 || month <= 1
+            ? "JOYFUL" // Advent & Christmastide
+            : month >= 2 && month <= 4
+            ? "SORROWFUL" // Lent
+            : "GLORIOUS"; // Eastertide
+        return season; // Returning just the prayer type
+    }
+};
+
+
+        const openingParts = [
+            {
+                title: "In ♰ the Name of the Father, and of the Son, and of the Holy Ghost.",
+                content: ""
+            },
+            {
+                title: "Apostles Creed",
+                content: `I believe in God the Father almighty,<br>
+                Creator of heaven and earth.<br>
+                And in Jesus Christ, His only Son, our Lord:<br>
+                Who was conceived by the Holy Ghost,<br>
+                born of the Virgin Mary,<br>
+                suffered under Pontius Pilate,<br>
+                was crucified, dead, and buried:<br>
+                He descended into hell:<br>
+                the third day He rose from the dead:<br>
+                and ascended into heaven:<br>
+                and sitteth at the right hand of God, the Father almighty:<br>
+                from thence He shall come to judge the quick and the dead.<br>
+                I believe in the Holy Ghost,<br>
+                the holy Catholic Church,<br>
+                the Communion of Saints,<br>
+                the forgiveness of sins,<br>
+                the resurrection of the body,<br>
+                and the life everlasting.<br>
+                Amen.`
+            },
+            {
+                title: "Our Father",
+                content: `Our Father,<br>
+                Who art in heaven,<br>
+                Hallowed be Thy Name.<br>
+                Thy kingdom come,<br>
+                Thy will be done,<br>
+                on earth as it is in heaven.<br>
+                Give us this day our daily bread,<br>
+                and forgive us our trespasses,<br>
+                as we forgive those who trespass against us.<br>
+                And lead us not into temptation:<br>
+                but deliver us from evil.<br>
+                Amen.`
+            },
+            {
+                title: "Hail Mary",
+                content: `Hail Mary,<br>
+                full of grace,<br>
+                the Lord is with thee.<br>
+                Blessed art thou amongst women,<br>
+                and blessed is the fruit of thy womb, Jesus.<br>
+                Holy Mary,<br>
+                Mother of God,<br>
+                pray for us sinners,<br>
+                now, and at the hour of our death.<br>
+                Amen.`,
+                repeat: 3
+            },
+            {
+                title: "Glory be (Lesser Doxology)",
+                content: `Glory be to the Father, and to the Son, and to the Holy Ghost.<br>
+                As it was in the beginning,<br>
+                is now, and ever shall be,<br>
+                world without end.<br>
+                Amen.`
+            },
+            {
+                title: "Fatima Prayer",
+                content: `O my Jesus,<br>
+                forgive us of our sins;<br>
+                save us from the fires of hell;<br>
+                and lead all souls to heaven,<br>
+                especially those most in need of Thy mercy.`
+            }
+        ];
+
+        const mysteries = {
+        JOYFUL: [
+            "Prímum mystérium gaudiósum: Annuntiatiónem Beátæ Maríæ Vírginis",
+            "Secúndum mystérium gaudiósum: Visitatiónem Beátæ Maríæ Vírginis",
+            "Tértium mystérium gaudiósum: Nativitátem Dómini nostri Iesu Christi",
+            "Quartum mystérium gaudiósum: Oblatiónem Dómini nostri Iesu Christi",
+            "Quintum mystérium gaudiósum: Inventiónem Dómini nostri Iesu Christi in templo"
+            ],
+        SORROWFUL: [
+            "Prímum mystérium dolorósum: Agóniam Dómini nostri Iesu Christi in horto",
+            "Secúndum mystérium dolorósum: Flagellatiónem Dómini nostri Iesu Christi",
+            "Tertium mystérium dolorósum: Coronatiónem spinis Dómini nostri Iesu Christi",
+            "Quartum mystérium dolorósum: Bajulatiónem Crucis",
+            "Quintum mystérium dolorósum: Crucifixiónem Dómini nostri Iesu Christi"
+            ],
+        GLORIOUS: [
+            "Prímum mystérium gloriósum: Resurrectiónem Dómini nostri Iesu Christi a mórtuis",
+            "Secúndum mystérium gloriósum: Ascensiónem Dómini nostri Iesu Christi in cáelum",
+            "Tertium mystérium gloriósum: Missiónem Spíritus Sancti in discípulos",
+            "Quartum mystérium gloriósum: Assumptiónem Beátæ Maríæ Vírginis in cælum",
+            "Quintum mystérium gloriósum: Coronatiónem Beátæ Maríæ Vírginis in cælum"
+            ]
+        };
+
+        const endingParts = [
+            {
+                title: "Hail Holy Queen †",
+                content: `Hail Holy Queen, Mother of Mercy!<br>
+                Hail our life, our sweetness, and our hope.<br>
+                To thee do we cry, poor banished children of Eve.<br>
+                To thee do we send up our sighs,<br>
+                mourning and weeping in this valley of tears.<br>
+                Turn then, most gracious Advocate,<br>
+                thine eyes of mercy towards us,<br>
+                and after this, our exile, show unto us<br>
+                the blessed fruit of thy womb, Jesus.<br>
+                O clement*, O loving*, O sweet* Virgin Mary!<br>
+                ℣. Pray for us, O Holy Mother of God.<br>
+                ℟. That we may be made worthy of the promises of Christ. Amen.`
+            },
+            {
+                title: "Let us Pray:",
+                content: `O God, Whose only begotten Son,<br>
+                by His Life, Death and Resurrection,<br>
+                hast purchased for us the rewards of eternal life;<br>
+                grant, we beseech Thee,<br>
+                that by meditating on these Mysteries<br>
+                of the most Holy Rosary,<br>
+                of the blessed Virgin Mary,<br>
+                that we may imitate what they contain,<br>
+                and obtain what they promise.<br>
+                Through the same Christ our Lord. Amen.<br>
+                May the divine assistance remain always with us.<br>
+                And may the souls of the faithful departed, by the mercy of God,<br>
+                rest in peace. Amen.`
+            },
+            {
+                title: "In ♰ the Name of the Father, and of the Son, and of the Holy Ghost.",
+                content: ""
+            }
+        ];
+        // Update color scheme for the mysteries
+const mysteryColors = {
+    JOYFUL: "#1564b2",  // Blue for Joyful
+    SORROWFUL: "#DC143C", // Red for Sorrowful
+    GLORIOUS: "#196619"  // Green for Glorious
+};
+
+mysteries[prayerType].forEach((mystery, index) => {
+    const mysteryType = mysteryColors[prayerType]; // Get the color based on prayer type
+    prayerContent.innerHTML += `
+        <div class="prayer-part" style="background-color: ${mysteryType}; padding: 10px; border-radius: 8px;">
+            <h3>Mystery ${index + 1}: ${mystery}</h3>
+        </div>
+    `;
+    prayerContent.innerHTML += `
+        <div class="prayer-part">
+            <h3>Our Father</h3>
+            <p>${openingParts[2].content}</p>
+        </div>
+    `;
+    for (let i = 0; i < 10; i++) {
+        prayerContent.innerHTML += `
+            <div class="prayer-part">
+                <h3>Hail Mary</h3>
+                <p>${openingParts[3].content}</p>
+            </div>
+        `;
+    }
+    prayerContent.innerHTML += `
+        <div class="prayer-part">
+            <h3>Glory be (Lesser Doxology)</h3>
+            <p>${openingParts[4].content}</p>
+        </div>
+    `;
+    prayerContent.innerHTML += `
+        <div class="prayer-part">
+            <h3>Fatima Prayer</h3>
+            <p>${openingParts[5].content}</p>
+        </div>
+    `;
+});
+
+
+function updatePrayer() {
+    const selectedDay = document.getElementById('day').value;
+    const prayerType = typeof prayers[selectedDay] === 'function' 
+        ? prayers[selectedDay]() 
+        : prayers[selectedDay];
+
+    const prayerContent = document.getElementById('prayerContent');
+    prayerContent.innerHTML = `<h2 style="color: #333;">${selectedDay} - ${prayerType} Mysteries</h2>`; // Neutral color for header text
+
+    // Add Opening Parts
+    openingParts.forEach(part => {
+        prayerContent.innerHTML += `
+            <div class="prayer-part">
+                <h3>${part.title}</h3>
+                <p>${part.content}</p>
+            </div>
+        `;
+        if (part.repeat) {
+            for (let i = 1; i < part.repeat; i++) {
+                prayerContent.innerHTML += `
+                    <div class="prayer-part">
+                        <h3>${part.title}</h3>
+                        <p>${part.content}</p>
+                    </div>
+                `;
+            }
+        }
+    });
+
+    // Add Mysteries with color based on type
+    const mysteryColors = {
+        JOYFUL: "#1E90FF",  // Blue for Joyful
+        SORROWFUL: "#FF4500", // Red for Sorrowful
+        GLORIOUS: "#32CD32"  // Green for Glorious
+    };
+
+    const selectedColor = mysteryColors[prayerType]; // Get the color based on prayer type
+
+    mysteries[prayerType].forEach((mystery, index) => {
+        prayerContent.innerHTML += `
+            <div class="prayer-part" style="background-color: ${selectedColor}; padding: 10px; border-radius: 8px;">
+                <h3>Mystery ${index + 1}: ${mystery}</h3>
+            </div>
+        `;
+        prayerContent.innerHTML += `
+            <div class="prayer-part">
+                <h3>Our Father</h3>
+                <p>${openingParts[2].content}</p>
+            </div>
+        `;
+        for (let i = 0; i < 10; i++) {
+            prayerContent.innerHTML += `
+                <div class="prayer-part">
+                    <h3>Hail Mary</h3>
+                    <p>${openingParts[3].content}</p>
+                </div>
+            `;
+        }
+        prayerContent.innerHTML += `
+            <div class="prayer-part">
+                <h3>Glory be (Lesser Doxology)</h3>
+                <p>${openingParts[4].content}</p>
+            </div>
+        `;
+        prayerContent.innerHTML += `
+            <div class="prayer-part">
+                <h3>Fatima Prayer</h3>
+                <p>${openingParts[5].content}</p>
+            </div>
+        `;
+    });
+
+    // Add Ending Parts
+    endingParts.forEach(part => {
+        prayerContent.innerHTML += `
+            <div class="prayer-part">
+                <h3>${part.title}</h3>
+                <p>${part.content}</p>
+            </div>
+        `;
+    });
+}
+
+
+    </script>
+</body>
+</html>
